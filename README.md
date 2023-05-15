@@ -20,9 +20,9 @@ python main.py
 
 ## Autores
 
-- Nahim Torres A01700190\
-- Emilio Rivas A01704615\
-- Alberto Matute A01704584\
-- Emmanuel Bautista A01705220\
-- Frank Schenkel A01701088\
+- Nahim Torres A01700190
+- Emilio Rivas A01704615
+- Alberto Matute A01704584
+- Emmanuel Bautista A01705220
+- Frank Schenkel A01701088
 - Sebastian Resendiz A01701111
