@@ -236,4 +236,5 @@ def main():
     # call the login function until the user quits
     login()
 
-main()
+if __name__ == "__main__":
+    main()
