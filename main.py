@@ -112,7 +112,7 @@ def menu():
         # check if the user's choice is 5
         elif choice == 5:
             # display a message to the user
-            display_sold_houses()
+            display_inventory()
         # check if the user's choice is 6
         elif choice == 6:
             # display a message to the user
@@ -157,6 +157,23 @@ def search_sold_house():
     for house in sold_houses:
         # check if the house ID is in the sold houses
         if house[0] == house_id:
+            # display the house details
+            print(house)
+            # display a message to the user
+            print("House found")
+            # return the house details
+            return house
+    # display a message to the user
+    print("House not found")
+
+#function to display houses sold by a specific salesman
+def display_sold_houses_by_salesman():
+    # get the salesman's name from the user
+    salesman_name = input("Enter the salesman's name: ")
+    # loop through the sold houses
+    for house in sold_houses:
+        # check if the salesman's name is in the sold houses
+        if salesman_name in house[4]:
             # display the house details
             print(house)
             # display a message to the user
