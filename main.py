@@ -1,4 +1,5 @@
-#Sales and inventory management app for a house sales busines
+from model import *
+# Sales and inventory management app for a house sales busines
 
 # create a list to store the inventory
 inventory = []
@@ -250,6 +251,7 @@ def login():
 
 #run main
 def main():
+    create_tables()
     # call the login function until the user quits
     login()
 
