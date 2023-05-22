@@ -5,6 +5,7 @@ def db_connect():
     cur = con.cursor()
     print("Database connected")
     return con, cur
+
 def exist(cur):
     res = cur.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='House' ''')
     #if the count is 1, then table exists
@@ -34,11 +35,22 @@ def create_tables():
         res.fetchone()
         print("Filling tables beep booop")
         fill_tables(cur)
+        create_views(cur)
 
     print("Printing tables")
     print_tables(cur)
     con.close()
-    
+
+
+def create_views(cur):
+    cur.execute("""CREATE VIEW View_SoldHouses_Salesmans AS
+                    SELECT S.first_name || ' ' || S.last_name AS Salesman, H.type AS HouseType, H.price AS Price, H.status AS Status
+                    FROM SoldHouse SH
+                    INNER JOIN House H ON SH.house_id = H.id
+                    INNER JOIN Seller S ON SH.seller_id = S.id
+                    """)
+    cur.commit()
+
 def fill_tables(cur):
     cur.execute("""
     INSERT INTO House(type,price,status) VALUES
@@ -54,9 +66,13 @@ def fill_tables(cur):
     """)
     cur.execute("""
     INSERT INTO SoldHouse(house_id,seller_id) VALUES
-        (3, 1)
+        (3, 1),
+        (2, 1),
+        (1, 3)
     """)
     cur.commit()
+
+
 def print_tables(cur):
     print("Printing table House")
     for row in cur.execute("Select * from House"):

@@ -188,3 +188,6 @@ Temporary Items
 .apdisk
 
 *.db
+
+# Test files
+*.csv
