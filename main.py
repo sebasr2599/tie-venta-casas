@@ -251,7 +251,6 @@ def login():
 
 #run main
 def main():
-    create_tables()
     # call the login function until the user quits
     login()
 
