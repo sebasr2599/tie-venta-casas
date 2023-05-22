@@ -1,4 +1,6 @@
 from model import *
+import pandas as pd
+import os
 # Sales and inventory management app for a house sales busines
 
 # create a list to store the inventory
@@ -145,10 +147,55 @@ def sell_house(username):
     # display a message to the user
     print("House not found")
 
+
 #function to display the sold houses
-def display_sold_houses():
-    # display the sold houses to the user
-    print(sold_houses)
+def display_sold_houses(seller=None):
+    '''
+    This function displays a complete report of the the sold houses
+
+    Parameters:
+        seller (str): 
+            The name of the seller
+
+    Returns:
+        df (DataFrame): 
+            A dataframe containing the sold houses
+    '''
+    conn, cur = db_connect()
+    if seller is None:
+        df = pd.read_sql_query("SELECT * FROM View_SoldHouses_Salesmans", conn)
+    else:
+        # Check if the seller exists
+        # Divide salesname into first and last name
+        name = seller.split()
+        cur.execute("SELECT * FROM Seller WHERE first_name  = ? AND last_name = ?", (name[0], name[1]))
+        if cur.fetchone() is None:
+            print("Seller does not exist")
+            return
+        else:
+            df = pd.read_sql_query("SELECT * FROM View_SoldHouses_Salesmans WHERE Salesman = ?", conn, params=[seller])
+    # If df is empty, then there are no sold houses
+    conn.close() 
+    print(df)
+    return df
+
+
+def export_sales_report(df):
+    '''
+    This function exports the sales report to a csv file in current
+    directory.
+
+    Parameters:
+        df (DataFrame): 
+            A dataframe containing the sold houses
+
+    Returns:
+    None
+    '''
+    path = os.getcwd()
+    file_path = path + '/sales_report.csv'
+    df.to_csv(file_path, index=False)
+
 
 #function to search for a sold house
 def search_sold_house():
@@ -167,22 +214,6 @@ def search_sold_house():
     # display a message to the user
     print("House not found")
 
-#function to display houses sold by a specific salesman
-def display_sold_houses_by_salesman():
-    # get the salesman's name from the user
-    salesman_name = input("Enter the salesman's name: ")
-    # loop through the sold houses
-    for house in sold_houses:
-        # check if the salesman's name is in the sold houses
-        if salesman_name in house[4]:
-            # display the house details
-            print(house)
-            # display a message to the user
-            print("House found")
-            # return the house details
-            return house
-    # display a message to the user
-    print("House not found")
 
 #function to display the menu to the user until the user quits
 def menuSalesman(username):
@@ -251,8 +282,11 @@ def login():
 
 #run main
 def main():
+    #create_tables()
+    df = display_sold_houses('Emilio Rivas')
+    export_sales_report(df)
     # call the login function until the user quits
-    login()
+    #login()
 
 if __name__ == "__main__":
     main()
