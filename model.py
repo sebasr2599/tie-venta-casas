@@ -16,19 +16,21 @@ def exist(cur):
 def create_tables():
     cur, con = db_connect()
     if not exist(cur):
-        cur.execute("""CREATE TABLE House(id INTEGER PRIMARY KEY,
-                                        type VARCHAR(20)  NOT NULL,
-                                        price INTEGER NOT NULL, 
-                                        status VARCHAR(20) NOT NULL)""")
-        cur.execute("""CREATE TABLE Seller(id INTEGER PRIMARY KEY,
-                                           first_name VARCHAR(20) NOT NULL, 
-                                           last_name VARCHAR(20) NOT NULL)""")
-        cur.execute("""CREATE TABLE SoldHouse(id INTEGER PRIMARY KEY,
-                                              house_id INTEGER, 
-                                              seller_id INTEGER, 
-                                              FOREIGN KEY(house_id) REFERENCES House(id),
-                                              FOREIGN KEY(seller_id) REFERENCES Seller(id)
-                                              )""")
+
+        cur.execute("""CREATE TABLE Seller(
+                        id INTEGER PRIMARY KEY,
+                        first_name VARCHAR(20) NOT NULL,
+                        last_name VARCHAR(20) NOT NULL
+                    )""")
+        cur.execute("""CREATE TABLE House(
+                id INTEGER PRIMARY KEY,
+                type VARCHAR(20) NOT NULL,
+                price INTEGER NOT NULL,
+                status VARCHAR(20) NOT NULL,
+                seller_id INTEGER,
+                FOREIGN KEY(seller_id) REFERENCES Seller(id)
+            )""")
+
         print("Tables created")
         res = cur.execute("SELECT name FROM sqlite_master")
         res.fetchone()
@@ -40,12 +42,7 @@ def create_tables():
     con.close()
     
 def fill_tables(cur):
-    cur.execute("""
-    INSERT INTO House(type,price,status) VALUES
-        ("Condo", 1000000,"Available"),
-        ("Depa", 1500000,"Available"),
-        ("Pantano", 500000,"Not Available")
-    """)
+
     cur.execute("""
     INSERT INTO Seller(first_name,last_name) VALUES
         ("Emilio", "Rivas"),
@@ -53,8 +50,10 @@ def fill_tables(cur):
         ("Nahim", "Medellin")
     """)
     cur.execute("""
-    INSERT INTO SoldHouse(house_id,seller_id) VALUES
-        (3, 1)
+    INSERT INTO House(type,price,seller_id,status) VALUES
+        ("Condo", 1000000,1,"Available"),
+        ("Depa", 1500000,2,"Available"),
+        ("Pantano", 500000,3,"Not Available")
     """)
     cur.commit()
 def print_tables(cur):
@@ -63,8 +62,5 @@ def print_tables(cur):
         print(row)
     print("Printing table Seller")
     for row in cur.execute("Select * from Seller"):
-        print(row)
-    print("Printing table SoldHouse")
-    for row in cur.execute("Select * from SoldHouse"):
         print(row)
 
