@@ -58,17 +58,22 @@ class Login(tk.Tk):
         # compare them with the ones in the login window
         # if they match, send a welcome message
         # else, show an error message
-        if username == "admin" and password == "admin":
+        if (username == "admin" and password == "admin") or (username == "user" and password == "user"):
             # show the main window
             self.destroy()
             main = Main()
+            if username == "admin":
+                main.set_user_admin()
+            else:
+                main.set_user_user()
             main.mainloop()
         else:
             self.lbl_message["text"] = "Username or password incorrect"
 
 #tinker main window
 # show a crud window with the database "Tie-House.db"
-class Main(tk.Tk):
+class Main(tk.Tk): 
+    user = ""   
     def __init__(self):
         super().__init__()
         self.title("House selling machine")
@@ -76,6 +81,13 @@ class Main(tk.Tk):
         self.resizable(False, False)
         self.configure(bg="white")
 
+
+    def set_user_admin(self):
+        self.user = "admin"
+        self.create_widgets()
+    
+    def set_user_user(self):
+        self.user = "user"
         self.create_widgets()
 
     def create_widgets(self):
@@ -84,19 +96,61 @@ class Main(tk.Tk):
         self.lbl_title.grid(row=0, column=0, columnspan=2, padx=5, pady=5)
 
         # create treeview
-        self.tree = ttk.Treeview(self, columns=("ID", "Name", "Price", "Administrator","status", "Update", "Delete"))
+        self.tree = ttk.Treeview(self, columns=("ID", "Name", "Price", "Administrator","status"))
         self.tree.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
         self.tree.heading("#0", text="ID")
         self.tree.heading("#1", text="Name")
         self.tree.heading("#2", text="Price")
         self.tree.heading("#3", text="Administrator")
         self.tree.heading("#4", text="Status")
-        self.tree.heading("#5", text="Update")
-        self.tree.heading("#6", text="Delete")
 
+        # if user is admin
+        if self.user == "admin":
+            # create delete label
+            self.lbl_delete = ttk.Label(self, text="Enter ID to delete:")
+            self.lbl_delete.grid(row=2, column=0, padx=5, pady=5)
 
+            # create delete entry
+            self.ent_delete = ttk.Entry(self)
+            self.ent_delete.grid(row=2, column=1, padx=5, pady=5)
 
+            # create delete button
+            self.btn_delete = ttk.Button(self, text="Delete", command=self.delete)
+            self.btn_delete.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="we")
 
+            # create add label
+            self.lbl_name = ttk.Label(self, text="Name:")
+            self.lbl_name.grid(row=4, column=0, padx=5, pady=5)
+            self.lbl_price = ttk.Label(self, text="Price:")
+            self.lbl_price.grid(row=5, column=0, padx=5, pady=5)
+            self.lbl_admin = ttk.Label(self, text="Administrator:")
+            self.lbl_admin.grid(row=6, column=0, padx=5, pady=5)
+            self.lbl_status = ttk.Label(self, text="Status:")
+            self.lbl_status.grid(row=7, column=0, padx=5, pady=5)
+
+            query = "SELECT * FROM Seller"
+            cur.execute(query)
+            sellers = cur.fetchall()
+            self.sellers = []
+            for seller in sellers:
+                self.sellers.append((seller[0], seller[1]))  # Store both ID and name as a tuple
+
+            # create add entry
+            self.ent_name = ttk.Entry(self)
+            self.ent_name.grid(row=4, column=1, padx=5, pady=5)
+            self.ent_price = ttk.Entry(self)
+            self.ent_price.grid(row=5, column=1, padx=5, pady=5)
+            # display seller names in combobox and bind seller IDs to them
+            self.ent_admin = ttk.Combobox(self, values=[seller[1] for seller in sellers], state="readonly")
+            self.ent_admin.grid(row=6, column=1, padx=5, pady=5)
+            self.ent_admin.current(0)
+            self.ent_status = ttk.Combobox(self, values=["available", "sold"], state="readonly")
+            self.ent_status.grid(row=7, column=1, padx=5, pady=5)
+            self.ent_status.insert(0, "available")
+
+            # create add button
+            self.btn_add = ttk.Button(self, text="Add", command=self.add)
+            self.btn_add.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky="we")
 
         # load data
         self.load_data()
@@ -111,122 +165,68 @@ class Main(tk.Tk):
         query = "SELECT House.Id, House.type, House.price, Seller.first_name, House.status FROM House INNER JOIN Seller ON House.seller_id = Seller.id"
         db_rows = cur.execute(query).fetchall()
 
-        # Load images
-        update_img = ImageTk.PhotoImage(Image.open(r"tie-venta-casas\icons\update_icon.png"))
-        delete_img = ImageTk.PhotoImage(Image.open(r"tie-venta-casas\icons\delete_icon.png"))
-
         # Insert data
         for row_id, row in enumerate(db_rows):
             house_id, house_type, price, seller_first_name, status = row
-            update_button = ttk.Button(self.tree, image=update_img, command=lambda row=row: self.update(row))
-            delete_button = ttk.Button(self.tree, image=delete_img, command=lambda row=row: self.delete(row))
-            update_button.image = update_img  # Store a reference to avoid garbage collection
-            delete_button.image = delete_img  # Store a reference to avoid garbage collection
-            self.tree.insert("", tk.END, values=(house_id, house_type, price, seller_first_name, status, update_button, delete_button))
+            self.tree.insert("", tk.END, values=(house_id, house_type, price, seller_first_name, status))
 
         # Adjust column widths to accommodate the headings
-        self.tree.column("#0", width=80)
-        self.tree.column("#1", width=80)
-        self.tree.column("#2", width=80)
-        self.tree.column("#3", width=80)
-        self.tree.column("#4", width=80)
-        self.tree.column("#5", width=80)
-        self.tree.column("#6", width=80)
+        self.tree.column("#0", width=80, anchor="center")
+        self.tree.column("#1", width=80, anchor="center")
+        self.tree.column("#2", width=80, anchor="center")
+        self.tree.column("#3", width=80, anchor="center")
+        self.tree.column("#4", width=80, anchor="center")
 
-    def delete(self, event):
+
+    def delete(self):
         # get id
-        selected_item = self.tree.selection()[0]
-        id = self.tree.item(selected_item, "text")
+        id = self.ent_delete.get()
 
         # delete from database
         query = "DELETE FROM House WHERE id=?"
         cur.execute(query, (id,))
         con.commit()
 
-        # show message
-        self.lbl_message["text"] = "Deleted successfully"
-
-        # update data
+        # load data
         self.load_data()
 
-    def update(self, event):
-        # get id
-        selected_item = self.tree.selection()[0]
-        id = self.tree.item(selected_item, "text")
-
-        # create update window
-        update_window = Update(id)
-
-        # bind button
-        update_window.btn_update.bind("<Button-1>", self.update_row)
-
-    def update_row(self, event):
-        # get id
-        id = self.tree.item(self.tree.selection()[0], "text")
-
+    def add(self):
         # get values
         name = self.ent_name.get()
         price = self.ent_price.get()
-        description = self.ent_description.get()
+        admin_name = self.ent_admin.get()
+        status = self.ent_status.get()
 
-        # update database
-        query = "UPDATE House SET type=?, price=?, description=? WHERE id=?"
-        cur.execute(query, (name, price, description, id))
-        con.commit()
+        # retrieve the seller id based on the selected name
+        seller_id = None
+        for seller in self.sellers:
+            if seller[1] == admin_name:
+                seller_id = seller[0]
+                break
 
-        # show message
-        self.lbl_message["text"] = "Updated successfully"
+        if seller_id is not None:
+            # insert into the database
+            query = "INSERT INTO House (type, price, seller_id, status) VALUES (?, ?, ?, ?)"
+            cur.execute(query, (name, price, seller_id, status))
+            con.commit()
 
-        # update data
-        self.load_data()
+            # load data
+            self.load_data()
 
-#tinker update window
-# show a window to update a row in the database
-class Update(tk.Toplevel):
-    def __init__(self, id):
-        super().__init__()
-        self.title("Update House")
-        self.geometry("400x250")
-        self.resizable(False, False)
-        self.configure(bg="white")
-
-        self.id = id
-
-        self.create_widgets()
-
-    def create_widgets(self):
-        # get data of the selected row
-        query = "SELECT * FROM House WHERE id=?"
-        result = cur.execute(query, (self.id,)).fetchone()
-
-        # create labels
-        self.lbl_name = ttk.Label(self, text="Name:")
-        self.lbl_name.grid(row=0, column=0, padx=5, pady=5)
-        self.lbl_price = ttk.Label(self, text="Price:")
-        self.lbl_price.grid(row=1, column=0, padx=5, pady=5)
-        self.lbl_description = ttk.Label(self, text="Description:")
-        self.lbl_description.grid(row=2, column=0, padx=5, pady=5)
-
-        # create entry
-        self.ent_name = ttk.Entry(self)
-        self.ent_name.grid(row=0, column=1, padx=5, pady=5)
-        self.ent_name.insert(0, result[1])
-        self.ent_price = ttk.Entry(self)
-        self.ent_price.grid(row=1, column=1, padx=5, pady=5)
-        self.ent_price.insert(0, result[2])
-        self.ent_description = ttk.Entry(self)
-        self.ent_description.grid(row=2, column=1, padx=5, pady=5)
-        self.ent_description.insert(0, result[3])
-
-        # create button
-        self.btn_update = ttk.Button(self, text="Update")
-        self.btn_update.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="we")
+            # clear the input fields
+            self.ent_name.delete(0, tk.END)
+            self.ent_price.delete(0, tk.END)
+            self.ent_admin.current(0)
+            self.ent_status.delete(0, tk.END)
+        else:
+            # handle the case when seller_id is not found
+            print("Error: Seller ID not found for selected name.")
 
 
 # test login window
 
 if __name__ == "__main__":
-    app = Main()
+    app = Login()
     app.mainloop()
 
 
