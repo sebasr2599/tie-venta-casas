@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3
 from PIL import ImageTk, Image
+from fpdf import FPDF
 
 
 # import database
@@ -152,6 +153,14 @@ class Main(tk.Tk):
             self.btn_add = ttk.Button(self, text="Add", command=self.add)
             self.btn_add.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky="we")
 
+            # create "print report" button
+            self.btn_report = ttk.Button(self, text="Print report", command=self.report)
+            self.btn_report.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky="we")
+
+            # create "print report" button
+            self.btn_report = ttk.Button(self, text="Print report", command=self.report)
+            self.btn_report.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky="we")
+
         # if user is user
         if self.user == "user":
             # create sell label
@@ -248,6 +257,30 @@ class Main(tk.Tk):
 
         # load data
         self.load_data()
+
+    # select houses with status "sold" and print a report in a pdf file
+    def report(self):
+        # get data
+        query = "SELECT House.Id, House.type, House.price, Seller.first_name, Seller.last_name, House.status FROM House INNER JOIN Seller ON House.seller_id = Seller.id WHERE House.status='sold'"
+        db_rows = cur.execute(query).fetchall()
+
+        # create a pdf file
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        # print the data
+        for row in db_rows:
+            house_id, house_type, price, seller_first_name, seller_last_name, status = row
+            pdf.cell(200, 10, txt="House ID: " + str(house_id), ln=1, align="L")
+            pdf.cell(200, 10, txt="House type: " + house_type, ln=1, align="L")
+            pdf.cell(200, 10, txt="Price: " + str(price), ln=1, align="L")
+            pdf.cell(200, 10, txt="Seller ID: " + str(seller_first_name) + " " + str(seller_last_name), ln=1, align="L")
+            pdf.cell(200, 10, txt="Status: " + str(status), ln=1, align="L")
+            pdf.cell(200, 10, txt="--------------------------------------", ln=1, align="L")
+
+        # save the pdf file
+        pdf.output("report.pdf")
 
 # test login window
 
