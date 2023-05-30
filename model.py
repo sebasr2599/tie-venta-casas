@@ -53,7 +53,7 @@ def fill_tables(cur):
     INSERT INTO House(type,price,seller_id,status) VALUES
         ("Condo", 1000000,1,"Available"),
         ("Depa", 1500000,2,"Available"),
-        ("Pantano", 500000,3,"Not Available")
+        ("Pantano", 500000,3,"sold")
     """)
     cur.commit()
 def print_tables(cur):

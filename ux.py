@@ -152,6 +152,21 @@ class Main(tk.Tk):
             self.btn_add = ttk.Button(self, text="Add", command=self.add)
             self.btn_add.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky="we")
 
+        # if user is user
+        if self.user == "user":
+            # create sell label
+            self.lbl_sell = ttk.Label(self, text="Enter ID to sell:")
+            self.lbl_sell.grid(row=2, column=0, padx=5, pady=5)
+
+            # create sell entry
+            self.ent_sell = ttk.Entry(self)
+            self.ent_sell.grid(row=2, column=1, padx=5, pady=5)
+
+            # create sell button
+            self.btn_sell = ttk.Button(self, text="Sell", command=self.sell)
+            self.btn_sell.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="we")
+
+            
         # load data
         self.load_data()
 
@@ -222,6 +237,17 @@ class Main(tk.Tk):
             # handle the case when seller_id is not found
             print("Error: Seller ID not found for selected name.")
 
+    def sell(self):
+        # get id
+        id = self.ent_sell.get()
+
+        # update database
+        query = "UPDATE House SET status='sold' WHERE id=?"
+        cur.execute(query, (id,))
+        con.commit()
+
+        # load data
+        self.load_data()
 
 # test login window
 
